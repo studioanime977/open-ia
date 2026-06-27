@@ -1,0 +1,29 @@
+name: 🔒 Stale
+
+on:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          stale-issue-message: |
+            Este issue lleva 30 días sin actividad.  
+            Si todavía es relevante, actualizalo o comentá algo.  
+            Si no, se va a cerrar automáticamente en 7 días.
+          stale-pr-message: |
+            Este PR lleva 30 días sin actividad.  
+            Si todavía está en desarrollo, avisá para que no lo cerremos.
+          days-before-stale: 30
+          days-before-close: 7
+          stale-issue-label: 'stale'
+          stale-pr-label: 'stale'
+          exempt-issue-labels: 'bug,enhancement,pinned'
+          exempt-pr-labels: 'work-in-progress'
