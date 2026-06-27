@@ -84,6 +84,13 @@ Invoke-WebRequest -Uri "https://raw.githubusercontent.com/studioanime977/open-ia
 & "$env:TEMP\install-opencode.ps1"
 ```
 
+El instalador hace todo automáticamente:
+
+1. **Instala OpenCode + herramientas** (Node.js, Git, Windows Terminal)
+2. **Prepara MCP servers** (sequential-thinking, graphify, n8n, agent-browser, etc.)
+3. **Crea el grafo de conocimiento local**
+4. **Al final**: te pide tus API keys y las configura
+
 ### Paso 3: Iniciar OpenCode
 
 ```powershell
