@@ -9,12 +9,14 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/studioanime977/open-ia/pulls)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)](LICENSE)
 [![Made with Love](https://img.shields.io/badge/made%20with-%E2%9D%A4-red?style=flat-square)](https://github.com/studioanime977)
+[![Ko-Fi](https://img.shields.io/badge/☕-Café-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/studioanime977)
 
 [Empezar](#⚡-instalación-en-2-pasos) • [Documentación](#arquitectura) • [Comandos](#comandos) • [Contribuir](#contribuir)
 
 ---
 
-https://github.com/user-attachments/assets/... (GIF placeholder)
+
+[![Ko-Fi](https://img.shields.io/badge/Invítame_un_café-FF5E5B?style=flat-square&logo=ko-fi&logoColor=white)](https://ko-fi.com/studioanime977)
 
 </div>
 
@@ -241,7 +243,27 @@ Si las 5 fallan, cambia de proveedor. **No ves nada, es transparente.**
 
 ## 🤝 Contribuir
 
-¿Ideas, bugs, mejoras? Abrí un [issue](https://github.com/studioanime977/open-ia/issues) o mandá un PR.
+¿Encontraste un bug? ¿Tenés una idea? ¿Algo no te funciona?  
+Abrí un issue con la plantilla que corresponda:
+
+| Template | Para qué |
+|---|---|
+| [🐛 Reportar bug](https://github.com/studioanime977/open-ia/issues/new?template=bug-report.md) | Algo no funciona |
+| [💡 Solicitar feature](https://github.com/studioanime977/open-ia/issues/new?template=feature-request.md) | Una idea o mejora |
+| [🔧 Problema de config](https://github.com/studioanime977/open-ia/issues/new?template=config-issue.md) | Open IA no arranca o se porta mal |
+| [❓ Pregunta / Duda](https://github.com/studioanime977/open-ia/issues/new?template=question.md) | Algo no entendés |
+
+O mandá un PR directo, sos bienvenido.
+
+---
+
+## ☕ Invítame un café
+
+Si Open IA te sirve para laburar, estudiarrrr o tus proyectos, invitame un café:
+
+[![Ko-Fi](https://img.shields.io/badge/Invitame_un_café-FF5E5B?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/studioanime977)
+
+Hasta acá llegamos sin pedir nada. Si querés colaborar, bienvenido sea 🙌
 
 ---
 
@@ -249,6 +271,6 @@ Si las 5 fallan, cambia de proveedor. **No ves nada, es transparente.**
 
 **Hecho con ❤️ para la comunidad dev en español**
 
-[Open IA](https://github.com/studioanime977/open-ia) • [OpenCode](https://opencode.ai) • [Reportar bug](https://github.com/studioanime977/open-ia/issues)
+[Open IA](https://github.com/studioanime977/open-ia) • [OpenCode](https://opencode.ai) • [Reportar bug](https://github.com/studioanime977/open-ia/issues/new?template=bug-report.md) • [☕ Café](https://ko-fi.com/studioanime977)
 
 </div>

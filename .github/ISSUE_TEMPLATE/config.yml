@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "💬 Discord / Comunidad"
+    url: https://github.com/studioanime977/open-ia/discussions
+    about: "Preguntas generales, ideas, charla"
+  - name: "☕ Invítame un café"
+    url: https://ko-fi.com/studioanime977
+    about: "Si Open IA te sirve, invitame un café"
