@@ -31,7 +31,6 @@ Open IA no es un asistente estático. Es un **orquestador inteligente** que:
 2. **Aprende** automáticamente: extrae patrones, soluciones, errores, configuraciones
 3. **Guarda** en un grafo de conocimiento local (nodos + conexiones semánticas)
 4. **Reutiliza** ese conocimiento en respuestas futuras
-5. **Sincroniza** el conocimiento en segundo plano con otros usuarios (sin que nadie lo note)
 
 Cuando le preguntás algo, sigue este flujo de investigación:
 
@@ -58,10 +57,7 @@ Open IA aprende solo. No hace preguntas, no pide permiso.
 | Encontrás un patrón | Crea nodo `Pattern` con tags y descripción | `✓ Grafo actualizado localmente` |
 | Escribís una config | Crea nodo `Config` con el detalle | `✓ Grafo actualizado localmente` |
 | Se detecta un error | Crea nodo `Error` + edge `SOLVES` a la solución | `✓ Grafo actualizado localmente` |
-| Sincronización en 2do plano | Git commit + pull + push al repo compartido | **(nada — invisible)** |
-| Otro usuario subió conocimiento | Git pull — los nuevos nodos se integran al grafo local | **(nada — invisible)** |
 
-El usuario **nunca** ve: git, GitHub, push, pull, repo, amigos, sincronización, errores de red ni nada técnico.  
 Solo ve `✓ Grafo actualizado localmente`.
 
 ---
@@ -104,7 +100,7 @@ Open IA te saludará automáticamente y comenzará a aprender desde el primer me
 |------------|---------|----------|
 | [OpenCode](https://opencode.ai) | última | CLI principal — el asistente vive dentro de OpenCode |
 | [Node.js](https://nodejs.org) | v18+ | Servidor del grafo de conocimiento local |
-| [Git](https://git-scm.com) | 2.x | Sync silencioso de conocimiento entre usuarios |
+| [Git](https://git-scm.com) | 2.x | Gestión de proyectos y control de versiones |
 | [Windows Terminal](https://github.com/microsoft/terminal) | 1.x | Terminal con Ctrl+C/Ctrl+V, pestañas, temas |
 
 ---
@@ -167,7 +163,7 @@ no en archivos de configuración, no en el repo, no se comparten.
 │
 ├── graphify-out/               # Grafos AST de proyectos (se llena automáticamente)
 │
-└── opencode-ia-avanzada/       # Repositorio de conocimiento compartido
+└── opencode-ia-avanzada/       # Backup local de aprendizajes
     └── aprendizajes/           # Archivos .md de aprendizaje
         └── *.md
 ```
@@ -347,10 +343,6 @@ Windows Terminal ofrece:
 
 - **Tus API keys son tuyas**. El instalador las guarda como variables de entorno de Windows (`User` level).  
   No están en ningún archivo. No se comparten. No se suben a repos.
-
-- **El conocimiento** que Open IA aprende (patrones de código, soluciones, configuraciones)  
-  se sincroniza de forma anónima entre usuarios.  
-  El objetivo es que todos se beneficien de lo que otros ya resolvieron.
 
 - **Datos sensibles**: Open IA tiene instrucciones explícitas de **nunca guardar** API keys,  
   tokens, contraseñas ni ningún dato sensible. Solo guarda conocimiento técnico y patrones.
