@@ -1,122 +1,97 @@
-﻿# Open IA - Inteligencia Artificial en tu Terminal
+# Open IA - Asistente IA Avanzado para OpenCode
 
-Sistema completo de AI coding agent basado en **OpenCode** con configuracion avanzada: MCP servers, auto-aprendizaje, grafo de conocimiento, modelos multiple (cloud + locales), y mas.
+**Open IA** es un sistema de inteligencia artificial que vive dentro de [OpenCode](https://opencode.ai). 
+Aprende de cada interacción y construye un grafo de conocimiento que se vuelve más inteligente con cada uso.
 
-## Requisitos
+## Características
 
-| Recurso | Minimo | Recomendado |
-|---------|--------|-------------|
-| Sistema | Windows 10+ | Windows 11 |
-| RAM     | 8 GB    | 16+ GB      |
-| Disco   | 5 GB    | 20+ GB      |
-| Internet | Si     | Fibra       |
+- **Auto-aprendizaje continuo** — cada interacción deja conocimiento
+- **Grafo de conocimiento local** — memoria persistente con nodos y conexiones semánticas
+- **Multi-proveedor** — OpenAI, Anthropic, Google, Groq (con rotación automática de API keys)
+- **MCP Servers** — HiggsField, Context7, codebase-memory-mcp, n8n, Sequential Thinking
+- **Spec-Driven Development** — flujo de desarrollo guiado por especificaciones
+- **Web Security Scanner** — analiza sitios antes de abrirlos
+- **Comandos personalizados** — `/hacker`, `/matrix`, `/think`, `/kg`, `/scan` y más
 
-## Instalacion Rapida (1 comando)
+## Instalación
 
-Abri **PowerShell como Administrador** y ejecuta:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass; iwr -Uri "https://raw.githubusercontent.com/studioanime977/open-ia/main/install-opencode.ps1" -OutFile "$env:TEMP\install-opencode.ps1"; & "$env:TEMP\install-opencode.ps1"
-```
-
-### O paso a paso:
+Cada usuario crea **sus propias API keys** durante la instalación. Nunca se comparten.
 
 ```powershell
-# 1. Node.js
-winget install OpenJS.NodeJS.LTS
+# 1. Descargar el instalador
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/studioanime977/open-ia/main/install-opencode-ia.ps1" -OutFile "$env:TEMP\install-opencode-ia.ps1"
 
-# 2. Git
-winget install Git.Git
+# 2. Ejecutar
+& "$env:TEMP\install-opencode-ia.ps1"
 
-# 3. OpenCode
-npm install -g opencode-ai
-
-# 4. GitHub CLI
-winget install GitHub.cli
+# 3. Iniciar OpenCode
+opencode
 ```
 
-## Configuracion Manual
+El instalador te pedirá:
+- **OpenAI API Key** (https://platform.openai.com/api-keys)
+- **Anthropic API Key** (https://console.anthropic.com/)
+- **Google API Key** (https://aistudio.google.com/apikey)
+- **5 Groq API Keys** para rotación automática (https://console.groq.com/keys)
 
-### 1. GitHub CLI (credenciales seguras)
+Tus keys se guardan como variables de entorno de Windows, **nunca en archivos de configuración**.
 
-```powershell
-gh auth login
-git config --global credential.helper "!gh auth git-credential"
-```
-
-### 2. Clonar configuracion
-
-```powershell
-mkdir -Force "$env:USERPROFILE\.config\opencode"
-git clone https://github.com/studioanime977/opencode-ia-avanzada.git "$env:USERPROFILE\.config\opencode\opencode-ia-avanzada"
-```
-
-### 3. API Keys
-
-| Proveedor      | Como configurar                    |
-|----------------|------------------------------------|
-| OpenCode Zen   | `/connect` en OpenCode             |
-| Anthropic      | `ANTHROPIC_API_KEY` en variables   |
-| OpenAI         | `OPENAI_API_KEY` en variables      |
-| Google Gemini  | `GEMINI_API_KEY` en variables      |
-
-## Comandos
-
-| Comando     | Descripcion                          |
-|-------------|--------------------------------------|
-| `/hacker`   | Modo hacker                          |
-| `/matrix`   | Modo Matrix                          |
-| `/aprender` | Guarda aprendizajes al repo          |
-| `/offline`  | Sin internet (modelos locales)       |
-| `/online`   | Modo con internet                    |
-| `/fallback` | Cambia modelo al agotar tokens       |
-| `/autoapp`  | Genera app completa                  |
-| `/ui`       | Disenador UI/UX                      |
-| `/think`    | Razonamiento paso a paso             |
-| `/context`  | Documentacion de librerias           |
-| `/simplify` | Refactoriza codigo                   |
-| `/design`   | Spec-Driven Development              |
-| `/higgsfield`| Genera imagenes/video con IA        |
-| `/openia`   | Orquestador inteligente (default)    |
-
-## MCP Servers
-
-| Server              | Tipo   | Descripcion                              |
-|---------------------|--------|------------------------------------------|
-| sequential-thinking | local  | Razonamiento estructurado                |
-| context7            | remote | Documentacion de librerias               |
-| n8n                 | local  | Automatizacion workflows                 |
-| agent-browser       | local  | Automatizacion de navegador              |
-| graphify            | local  | Grafo de conocimiento                    |
-| higgsfield          | remote | Supercomputador de IA (imagen/video)     |
-
-## Estructura
+## Arquitectura
 
 ```
 ~/.config/opencode/
-├── opencode.jsonc        # Config principal (modelo: Big Pickle)
-├── AGENTS.md             # Instrucciones globales
-├── tui.json              # Interfaz Matrix
-├── themes/hacker.json    # Tema verde neon
-└── opencode-ia-avanzada/ # Repo de conocimiento
-    ├── aprendizajes/      # Conocimientos guardados automaticamente
-    ├── agents/            # Agentes personalizados
-    ├── prompts/           # Prompts de sistema
-    └── .opencode/         # Config por proyecto
+├── opencode.jsonc          # Configuración principal
+├── AGENTS.md               # Instrucciones globales
+├── agents/                 # Prompts de cada agente
+├── prompts/                # Templates de prompts
+├── scripts/                # Scripts de utilidad
+├── knowledge-graph/        # Servidor MCP del grafo de conocimiento
+│   └── data/graph.json     # Datos persistentes del grafo
+└── opencode-ia-avanzada/   # Conocimiento compartido entre amigos
+    └── aprendizajes/       # Archivos .md de aprendizaje
 ```
 
 ## Modelos Disponibles
 
-- **Big Pickle** (default) - Modelo principal de OpenCode
-- GPT-5.1 Codex - Codigo y tareas generales
-- Claude Sonnet 4.5 - Razonamiento y planificacion
-- Claude Opus 4.5 - Razonamiento profundo
-- Gemini 3 Pro - Contexto largo
-- Codestral 2501 - Codigo local (sin internet)
+### Groq Cloud (con rotación de 5 keys)
+- Llama 4 Scout 17B (visión + herramientas)
+- Llama 3.3 70B (razonamiento)
+- Qwen 3 32B (código + razonamiento)
+- Qwen 3.6 27B (visión + razonamiento)
+- Groq Compound
+- GPT OSS 120B
 
-## Aprendizaje Automatico
+### Otros proveedores
+- OpenAI (GPT-5, GPT-5.1 Codex, GPT-4o, o3)
+- Anthropic (Claude Opus 4.5, Sonnet 4.5, Haiku 4)
+- Google (Gemini 3 Pro, Gemini 3 Flash)
+- Locales: LM Studio, Ollama (Qwen 3, DeepSeek R1, Codestral)
 
-Open IA aprende de cada interaccion y guarda los conocimientos en `aprendizajes/`.
-Luego hace push automatico a GitHub sin exponer credenciales (usa `gh`).
+## Comandos
 
-Repo de conocimiento: https://github.com/studioanime977/opencode-ia-avanzada
+| Comando | Descripción |
+|---------|-------------|
+| `/hacker` | Modo hacker |
+| `/matrix` | Modo Matrix |
+| `/think` | Razonamiento estructurado paso a paso |
+| `/kg` | Consulta al grafo de conocimiento |
+| `/scan` | Web Security Scanner |
+| `/spec` | Spec-Driven Development |
+| `/higgsfield` | Generar imágenes/video |
+| `/offline` | Modo sin internet |
+| `/online` | Modo con internet |
+| `/fallback` | Fallback automático de modelo |
+
+## Privacidad
+
+- **Tus API keys son tuyas**. El instalador las guarda como variables de entorno locales.
+- **No se comparten** con otros usuarios ni se suben a ningún repo.
+- El conocimiento que Open IA aprende (patrones, soluciones, configuraciones) se sincroniza de forma anónima entre usuarios para beneficio colectivo.
+- **Nunca se sincronizan datos sensibles** (keys, tokens, contraseñas).
+
+## Stack Tecnológico
+
+- OpenCode (CLI)
+- Node.js (grafo de conocimiento local)
+- PowerShell (scripts de instalación y rotación)
+- MCP Protocol (conexión con servicios externos)

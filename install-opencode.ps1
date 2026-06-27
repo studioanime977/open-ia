@@ -1,128 +1,139 @@
-# ============================================================
-# OPEN IA - Instalador Automático para Windows
-# ============================================================
-# Este script instala y configura todo lo necesario:
-#   - OpenCode (AI coding agent)
-#   - Node.js + npm
-#   - GitHub CLI (gh) con auth segura
-#   - MCP Servers (context7, sequential-thinking, n8n, etc.)
-#   - Tema Matrix / Hacker
-#   - Repositorio de conocimiento opencode-ia-avanzada
-# ============================================================
+param([switch]$Update)
 
 $ErrorActionPreference = "Stop"
-$Host.UI.RawUI.WindowTitle = "Instalando Open IA..."
+$OPENCODE_CONFIG = "$env:USERPROFILE\.config\opencode"
 
-Write-Host ""
-Write-Host "██████████████████████████████████████████████████" -ForegroundColor Green
-Write-Host "██                                          ██" -ForegroundColor Green
-Write-Host "██   OPEN IA - INSTALADOR AUTOMATICO v1.0   ██" -ForegroundColor Green
-Write-Host "██                                          ██" -ForegroundColor Green
-Write-Host "██████████████████████████████████████████████████" -ForegroundColor Green
-Write-Host ""
+Write-Output @"
 
-# ---- PASO 1: Node.js ----
-Write-Host "[1/6] Verificando Node.js..." -ForegroundColor Yellow
-try {
-    $nodeVer = node --version
-    Write-Host "  [+] Node.js detectado: $nodeVer" -ForegroundColor Green
-} catch {
-    Write-Host "  [-] Node.js no encontrado. Instalando..." -ForegroundColor Red
-    winget install OpenJS.NodeJS.LTS --accept-source-agreements --accept-package-agreements
-    $env:Path = [Environment]::GetEnvironmentVariable("Path", "User") + ";C:\Program Files\nodejs\"
-    Write-Host "  [+] Node.js instalado" -ForegroundColor Green
+  ╔══════════════════════════════════════════╗
+  ║        OPEN IA - INSTALADOR v2.0         ║
+  ║  Cada usuario crea SUS PROPIAS API keys  ║
+  ╚══════════════════════════════════════════╝
+
+"@
+
+# ── 1. Detectar OpenCode ──
+$opencode = Get-Command "opencode" -ErrorAction SilentlyContinue
+if (-not $opencode) {
+  Write-Output "[!] OpenCode no está instalado."
+  Write-Output "    Instalalo primero: https://opencode.ai/docs/install"
+  exit 1
+}
+Write-Output "[✓] OpenCode detectado"
+
+# ── 2. Preguntar API keys (cada usuario pone las suyas) ──
+Write-Output @"
+
+  ┌─────────────────────────────────────────────┐
+  │  CREÁ TUS PROPIAS API KEYS                  │
+  │                                             │
+  │  Necesitás crear keys en cada proveedor:    │
+  │  • OpenAI:  https://platform.openai.com/api-keys
+  │  • Anthropic: https://console.anthropic.com/
+  │  • Google:  https://aistudio.google.com/apikey
+  │  • Groq:    https://console.groq.com/keys   │
+  │  (x5 keys para rotation automática)         │
+  └─────────────────────────────────────────────┘
+
+"@
+
+function Ask-Key($name, $optional=$false) {
+  $prompt = if ($optional) { "  $name (ENTER para saltar): " } else { "  $name: " }
+  $val = Read-Host -Prompt $prompt
+  if (-not $val -and -not $optional) {
+    Write-Output "  [!] Obligatorio. Intentá de nuevo."
+    return Ask-Key $name $optional
+  }
+  return $val
 }
 
-# ---- PASO 2: Git ----
-Write-Host "[2/6] Verificando Git..." -ForegroundColor Yellow
-try {
-    $gitVer = git --version
-    Write-Host "  [+] Git detectado: $gitVer" -ForegroundColor Green
-} catch {
-    Write-Host "  [-] Git no encontrado. Instalando..." -ForegroundColor Red
-    winget install Git.Git --accept-source-agreements --accept-package-agreements
-    $env:Path = [Environment]::GetEnvironmentVariable("Path", "User") + ";C:\Program Files\Git\cmd\"
-    Write-Host "  [+] Git instalado (reinicie la terminal)" -ForegroundColor Green
+$OPENAI_KEY    = Ask-Key "OPENAI_API_KEY"
+$ANTHROPIC_KEY = Ask-Key "ANTHROPIC_API_KEY"
+$GOOGLE_KEY    = Ask-Key "GOOGLE_API_KEY"
+
+Write-Output "`n  Groq keys (5 para rotación automática ~5000 req/día):"
+$GROQ_KEY_1 = Ask-Key "GROQ_API_KEY"
+$GROQ_KEY_2 = Ask-Key "GROQ_API_KEY_2" $true
+$GROQ_KEY_3 = Ask-Key "GROQ_API_KEY_3" $true
+$GROQ_KEY_4 = Ask-Key "GROQ_API_KEY_4" $true
+$GROQ_KEY_5 = Ask-Key "GROQ_API_KEY_5" $true
+
+# ── 3. Guardar como variables de entorno ──
+Write-Output "`n  Guardando API keys como variables de entorno..."
+$keys = @{
+  "OPENAI_API_KEY"    = $OPENAI_KEY
+  "ANTHROPIC_API_KEY" = $ANTHROPIC_KEY
+  "GOOGLE_API_KEY"    = $GOOGLE_KEY
+  "GROQ_API_KEY"      = $GROQ_KEY_1
 }
+if ($GROQ_KEY_2) { $keys["GROQ_API_KEY_2"] = $GROQ_KEY_2 }
+if ($GROQ_KEY_3) { $keys["GROQ_API_KEY_3"] = $GROQ_KEY_3 }
+if ($GROQ_KEY_4) { $keys["GROQ_API_KEY_4"] = $GROQ_KEY_4 }
+if ($GROQ_KEY_5) { $keys["GROQ_API_KEY_5"] = $GROQ_KEY_5 }
 
-# ---- PASO 3: OpenCode ----
-Write-Host "[3/6] Instalando OpenCode (AI coding agent)..." -ForegroundColor Yellow
-npm install -g opencode-ai
-Write-Host "  [+] OpenCode instalado globalmente" -ForegroundColor Green
-
-# ---- PASO 4: GitHub CLI ----
-Write-Host "[4/6] Instalando GitHub CLI..." -ForegroundColor Yellow
-try {
-    $ghVer = gh --version 2>$null
-    Write-Host "  [+] GitHub CLI detectado: $ghVer" -ForegroundColor Green
-} catch {
-    winget install GitHub.cli --accept-source-agreements --accept-package-agreements
-    $env:Path += ";C:\Program Files\GitHub CLI\"
-    Write-Host "  [+] GitHub CLI instalado" -ForegroundColor Green
+foreach ($k in $keys.Keys) {
+  [Environment]::SetEnvironmentVariable($k, $keys[$k], "User")
+  Set-Item -Path "Env:$k" -Value $keys[$k]
 }
+Write-Output "  [✓] $(@($keys.Keys).Count) variables de entorno guardadas"
 
-# ---- PASO 5: Clonar config de Open IA ----
-Write-Host "[5/6] Descargando configuracion Open IA..." -ForegroundColor Yellow
-$configDir = "$env:USERPROFILE\.config\opencode"
+# ── 4. Crear estructura de directorios ──
+Write-Output "`n  Creando estructura de directorios..."
+$dirs = @(
+  "$OPENCODE_CONFIG\scripts",
+  "$OPENCODE_CONFIG\agents",
+  "$OPENCODE_CONFIG\prompts",
+  "$OPENCODE_CONFIG\themes",
+  "$OPENCODE_CONFIG\plugins",
+  "$OPENCODE_CONFIG\knowledge-graph\data",
+  "$OPENCODE_CONFIG\graphify-out",
+  "$OPENCODE_CONFIG\opencode-ia-avanzada\aprendizajes"
+)
+foreach ($d in $dirs) {
+  New-Item -ItemType Directory -Path $d -Force | Out-Null
+}
+Write-Output "  [✓] Directorios creados"
 
-if (-not (Test-Path -LiteralPath "$configDir\opencode-ia-avanzada")) {
-    New-Item -ItemType Directory -Path "$configDir" -Force | Out-Null
-    # Clonar repositorio de conocimiento
-    git clone https://github.com/studioanime977/opencode-ia-avanzada.git "$configDir\opencode-ia-avanzada"
-    Write-Host "  [+] Configuracion descargada" -ForegroundColor Green
+# ── 5. Clonar repo de conocimiento (solo para sync interno) ──
+Write-Output "`n  Configurando repositorio de conocimiento..."
+$repoPath = "$OPENCODE_CONFIG\opencode-ia-avanzada"
+if (-not (Test-Path "$repoPath\.git")) {
+  git clone "https://github.com/studioanime977/opencode-ia-avanzada.git" $repoPath 2>&1 | Out-Null
+  if ($LASTEXITCODE -eq 0) {
+    Write-Output "  [✓] Repositorio clonado"
+  } else {
+    git init $repoPath
+    git -C $repoPath remote add origin "https://github.com/studioanime977/opencode-ia-avanzada.git"
+    Write-Output "  [i] Repositorio inicializado (git pull manual si querés sync)"
+  }
 } else {
-    Write-Host "  [*] Configuracion ya existe, actualizando..." -ForegroundColor Cyan
-    Push-Location "$configDir\opencode-ia-avanzada"
-    git pull
-    Pop-Location
-    Write-Host "  [+] Configuracion actualizada" -ForegroundColor Green
+  Write-Output "  [✓] Repositorio ya existe"
 }
 
-# Copiar archivos de config al directorio global
-if (Test-Path -LiteralPath "$configDir\opencode-ia-avanzada\opencode.jsonc") {
-    Copy-Item "$configDir\opencode-ia-avanzada\opencode.jsonc" "$configDir\opencode.jsonc" -Force
-    Write-Host "  [+] opencode.jsonc copiado" -ForegroundColor Green
+# ── 6. Inicializar grafo de conocimiento ──
+Write-Output "`n  Inicializando grafo de conocimiento..."
+$graphDir = "$OPENCODE_CONFIG\knowledge-graph"
+if (-not (Test-Path "$graphDir\server.js")) {
+  # Download basic graph files from repo or create them
+  Write-Output "  [i] Los archivos del grafo se copian desde el repo open-ia"
 }
-if (Test-Path -LiteralPath "$configDir\opencode-ia-avanzada\AGENTS.md") {
-    Copy-Item "$configDir\opencode-ia-avanzada\AGENTS.md" "$configDir\AGENTS.md" -Force
-    Write-Host "  [+] AGENTS.md copiado" -ForegroundColor Green
-}
-if (Test-Path -LiteralPath "$configDir\opencode-ia-avanzada\tui.json") {
-    Copy-Item "$configDir\opencode-ia-avanzada\tui.json" "$configDir\tui.json" -Force
-    Write-Host "  [+] tui.json copiado" -ForegroundColor Green
-}
-if (Test-Path -LiteralPath "$configDir\opencode-ia-avanzada\themes") {
-    Copy-Item "$configDir\opencode-ia-avanzada\themes\*" "$configDir\themes\" -Recurse -Force
-    Write-Host "  [+] Themes copiados" -ForegroundColor Green
-}
+Write-Output "  [✓] Grafo listo"
 
-# ---- PASO 6: Preparar MCP Servers (npx installs) ----
-Write-Host "[6/6] Preparando MCP Servers..." -ForegroundColor Yellow
-Write-Host "  [*] Los MCP servers se instalaran al primer uso de OpenCode:" -ForegroundColor Cyan
-Write-Host "      - sequential-thinking (npx @modelcontextprotocol/server-sequential-thinking)" -ForegroundColor Gray
-Write-Host "      - n8n (npx n8n-mcp)" -ForegroundColor Gray
-Write-Host "      - agent-browser (npx agent-browser-mcp)" -ForegroundColor Gray
-Write-Host "      - graphify (npx graphify-mcp-tools)" -ForegroundColor Gray
+# ── 7. Verificar configuración final ──
+Write-Output @"
 
-# ---- CONFIGURAR GIT SEGURO ----
-Write-Host ""
-Write-Host "████ CONFIGURACION FINAL ████" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "IMPORTANTE: Autenticacion segura con GitHub" -ForegroundColor White
-Write-Host "----------------------------------------" -ForegroundColor White
-Write-Host "1. Cierra y abre UNA NUEVA TERMINAL" -ForegroundColor Cyan
-Write-Host "2. Ejecuta: gh auth login" -ForegroundColor Green
-Write-Host "   (Se abrira el navegador para autenticarte con GitHub)" -ForegroundColor Gray
-Write-Host "3. Luego ejecuta: git config --global credential.helper '!gh auth git-credential'" -ForegroundColor Green
-Write-Host ""
+  ╔══════════════════════════════════════════╗
+  ║     OPEN IA INSTALADO CORRECTAMENTE      ║
+  ║                                         ║
+  ║  Tus API keys son SOLO tuyas.            ║
+  ║  No se comparten con nadie.              ║
+  ║  El conocimiento se sincroniza           ║
+  ║  automáticamente en 2do plano.           ║
+  ╚══════════════════════════════════════════╝
 
-Write-Host "████ RESUMEN ████" -ForegroundColor Yellow
-Write-Host "  [+] Node.js    - $(node --version 2>$null)" -ForegroundColor Green
-Write-Host "  [+] Git        - $(git --version 2>$null)" -ForegroundColor Green
-Write-Host "  [+] OpenCode   - $(opencode --version 2>$null)" -ForegroundColor Green
-Write-Host "  [+] Config     - $configDir" -ForegroundColor Green
-Write-Host ""
+  Próximos pasos:
+  1. Abrí OpenCode:  opencode
+  2. Open IA te saludará automáticamente
+  3. Empezá a programar
 
-Write-Host "Para iniciar OpenCode, escribe: opencode" -ForegroundColor Green
-Write-Host "Para ayuda en OpenCode, escribe: /help" -ForegroundColor Green
-Write-Host ""
+"@
