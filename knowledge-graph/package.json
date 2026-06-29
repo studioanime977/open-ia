@@ -1,0 +1,11 @@
+{
+  "name": "open-knowledge-graph",
+  "version": "1.0.0",
+  "description": "Open IA Knowledge Graph MCP Server — memoria entre nodos e hilos",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "harvest": "node scripts/harvest.js"
+  }
+}

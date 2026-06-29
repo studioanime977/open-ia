@@ -156,7 +156,8 @@ const tools = [
   },
   {
     name: 'kg_stats',
-    description: 'Get graph statistics: node count, edge count, type distribution'
+    description: 'Get graph statistics: node count, edge count, type distribution',
+    inputSchema: { type: 'object', properties: {} }
   },
   {
     name: 'kg_harvest',
@@ -168,7 +169,8 @@ const tools = [
   },
   {
     name: 'kg_autodream_status',
-    description: 'Check AutoDream consolidation status (time gate, session gate, lock)'
+    description: 'Check AutoDream consolidation status (time gate, session gate, lock)',
+    inputSchema: { type: 'object', properties: {} }
   },
   {
     name: 'kg_autodream_consolidate',
@@ -182,7 +184,8 @@ const tools = [
   },
   {
     name: 'kg_wal_start',
-    description: 'Start a Write-Ahead Logging session for durability (like Claude Code\'s write-ahead logging)'
+    description: 'Start a Write-Ahead Logging session for durability (like Claude Code\'s write-ahead logging)',
+    inputSchema: { type: 'object', properties: {} }
   },
   {
     name: 'kg_wal_append',
@@ -199,7 +202,8 @@ const tools = [
   },
   {
     name: 'kg_wal_recover',
-    description: 'Recover from last WAL session (like Claude Code\'s resilience mechanism)'
+    description: 'Recover from last WAL session (like Claude Code\'s resilience mechanism)',
+    inputSchema: { type: 'object', properties: {} }
   },
   {
     name: 'kg_memory_save',
