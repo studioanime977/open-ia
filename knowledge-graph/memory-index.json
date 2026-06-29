@@ -1,0 +1,61 @@
+{
+  "version": "1.0.0",
+  "last_consolidated": null,
+  "sessions_since_consolidation": 0,
+  "memory": {
+    "layers": {
+      "claude_md": {
+        "type": "sticky_note",
+        "max_lines": 200,
+        "max_kb": 25,
+        "file": "MEMORY.md",
+        "description": "Lightweight index — always loaded in context"
+      },
+      "auto_memory": {
+        "type": "categorized_files",
+        "categories": ["user", "feedback", "project", "reference"],
+        "max_files_per_category": 50,
+        "file_pattern": "{category}_*.md",
+        "dir": "auto-memory/"
+      },
+      "session_memory": {
+        "type": "jsonl_summaries",
+        "trigger_tokens": 5000,
+        "dir": "session-logs/"
+      },
+      "autodream": {
+        "type": "bg_consolidation",
+        "time_gate_hours": 24,
+        "session_gate": 5,
+        "scan_throttle_minutes": 10,
+        "phases": ["orient", "gather", "consolidate", "prune"],
+        "status": "idle"
+      }
+    }
+  },
+  "tools": {
+    "reader_writer_lock": {
+      "max_concurrent_readers": 10,
+      "write_serial": true,
+      "partition_strategy": "rwl"
+    },
+    "tool_registry": []
+  },
+  "resilience": {
+    "write_ahead_logging": {
+      "enabled": true,
+      "dir": "wal/"
+    },
+    "recovery_paths": [
+      "context_compaction",
+      "collapse_drain",
+      "token_escalation"
+    ],
+    "max_consecutive_recoveries": 3
+  },
+  "compaction": {
+    "pipeline": ["microcompact", "autocompact", "full_compact"],
+    "context_window_threshold": 13000,
+    "reserved_budget": 8000
+  }
+}

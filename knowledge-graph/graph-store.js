@@ -7,6 +7,13 @@ const DATA_DIR = path.join(__dirname, 'data')
 const GRAPH_FILE = path.join(DATA_DIR, 'graph.json')
 const INDEX_FILE = path.join(DATA_DIR, 'fts-index.json')
 
+// === Claude Code-inspired subsystems ===
+import * as wal from './wal.js'
+import * as autoMemory from './auto-memory.js'
+const CONSOLIDATION_FILE = path.join(DATA_DIR, 'consolidation', 'autodream-status.json')
+
+export { wal, autoMemory }
+
 const NODE_TYPES = ['Concept', 'Pattern', 'Solution', 'Error', 'Tool', 'Command', 'Config', 'Code', 'Agent', 'MCP', 'Project', 'File']
 const EDGE_TYPES = ['SOLVES', 'USES', 'DERIVES_FROM', 'SIMILAR_TO', 'REQUIRES', 'PRECEDES', 'CONFLICTS_WITH', 'EXTENDS', 'CALLS', 'IMPORTS', 'DEFINES', 'REFERENCES', 'LEARNS_FROM']
 
@@ -250,6 +257,111 @@ function buildFTSIndex() {
     index[node.id] = [...terms]
   }
   fs.writeFileSync(INDEX_FILE, JSON.stringify(index))
+}
+
+// === AutoDream Consolidation Engine (Claude Code-inspired) ===
+export function getAutoDreamStatus() {
+  try {
+    const raw = fs.readFileSync(CONSOLIDATION_FILE, 'utf-8')
+    return JSON.parse(raw)
+  } catch {
+    return {
+      lastRun: null,
+      sessionsSinceLastRun: 0,
+      totalConsolidations: 0,
+      status: 'never_run'
+    }
+  }
+}
+
+export function checkAutoDreamGate() {
+  const status = getAutoDreamStatus()
+  const now = Date.now()
+  const timeGate = status.lastRun ? (now - new Date(status.lastRun).getTime()) > 24 * 60 * 60 * 1000 : true
+  const sessionGate = status.sessionsSinceLastRun >= 5
+  if (!timeGate && !sessionGate) return { shouldRun: false, reason: 'gates_not_met', status }
+  const lockFile = CONSOLIDATION_FILE + '.lock'
+  if (fs.existsSync(lockFile)) {
+    const lockAge = Date.now() - fs.statSync(lockFile).mtimeMs
+    if (lockAge < 10 * 60 * 1000) return { shouldRun: false, reason: 'locked', status }
+    fs.unlinkSync(lockFile)
+  }
+  return { shouldRun: timeGate || sessionGate, reason: timeGate ? 'time_gate' : 'session_gate', status }
+}
+
+export function lockAutoDream() {
+  const lockFile = CONSOLIDATION_FILE + '.lock'
+  fs.writeFileSync(lockFile, JSON.stringify({ locked: new Date().toISOString() }))
+}
+
+export function unlockAutoDream() {
+  const lockFile = CONSOLIDATION_FILE + '.lock'
+  try { fs.unlinkSync(lockFile) } catch {}
+}
+
+export function runAutoDreamPhase(phase) {
+  wal.append({ event: 'autodream_phase', phase, timestamp: new Date().toISOString() })
+  const status = getAutoDreamStatus()
+  const phases = {
+    orient: () => {
+      const memoryFiles = fs.readdirSync(path.join(DATA_DIR, 'auto-memory')).filter(f => f.endsWith('.md'))
+      const sessionFiles = fs.readdirSync(path.join(DATA_DIR, 'session-logs')).filter(f => f.endsWith('.jsonl'))
+      const memoryIndex = fs.readFileSync(path.join(DATA_DIR, 'MEMORY.md'), 'utf-8')
+      return { memoryFiles: memoryFiles.length, sessionFiles: sessionFiles.length, memoryIndexLines: memoryIndex.split('\n').length }
+    },
+    gather: () => {
+      const sessions = autoMemory.getRecentSessions(30)
+      const patterns = []
+      const corrections = []
+      for (const s of sessions) {
+        for (const e of s.entries) {
+          if (e.summary && e.summary.toLowerCase().includes('correct')) corrections.push(e)
+          if (e.summary && e.summary.toLowerCase().includes('pattern')) patterns.push(e)
+        }
+      }
+      return { sessionsScanned: sessions.length, correctionsFound: corrections.length, patternsFound: patterns.length }
+    },
+    consolidate: () => {
+      autoMemory.saveSessionSummary(`Consolidation run at ${new Date().toISOString()}`)
+      const oldStatus = status
+      const updated = {
+        lastRun: new Date().toISOString(),
+        sessionsSinceLastRun: 0,
+        totalConsolidations: (oldStatus.totalConsolidations || 0) + 1,
+        status: 'completed'
+      }
+      fs.writeFileSync(CONSOLIDATION_FILE, JSON.stringify(updated, null, 2))
+      return { previousRun: oldStatus.lastRun, totalRuns: updated.totalConsolidations }
+    },
+    prune: () => {
+      const indexFile = path.join(DATA_DIR, 'MEMORY.md')
+      let content = fs.readFileSync(indexFile, 'utf-8')
+      const lines = content.split('\n')
+      if (lines.length > 200) {
+        const header = lines.slice(0, 2)
+        const entries = lines.filter(l => l.startsWith('- '))
+        content = header.join('\n') + '\n' + entries.slice(-180).join('\n') + '\n'
+        fs.writeFileSync(indexFile, content)
+      }
+      const kb = Buffer.byteLength(content) / 1024
+      const trimmed = kb > 25
+      if (trimmed) {
+        const ratio = 25 / kb
+        const keepLines = lines.filter(l => l.startsWith('- '))
+        content = lines.slice(0, 2).join('\n') + '\n' + keepLines.slice(0, Math.floor(keepLines.length * ratio)).join('\n') + '\n'
+        fs.writeFileSync(indexFile, content)
+      }
+      return { linesBefore: lines.length, linesAfter: content.split('\n').length, trimmed, kb: Math.round(kb * 10) / 10 }
+    }
+  }
+  const fn = phases[phase]
+  return fn ? fn() : null
+}
+
+export function incrementSessionCounter() {
+  const status = getAutoDreamStatus()
+  status.sessionsSinceLastRun = (status.sessionsSinceLastRun || 0) + 1
+  fs.writeFileSync(CONSOLIDATION_FILE, JSON.stringify(status, null, 2))
 }
 
 load()
